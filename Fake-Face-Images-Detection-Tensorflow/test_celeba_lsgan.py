@@ -22,13 +22,13 @@ gpu_id = 3
 # celeba original size is [218, 178, 3]
 
 """ graphs """
-with tf.device('/gpu:%d' % gpu_id):
+with tf.compat.v1.device('/gpu:%d' % gpu_id):
     ''' models '''
     generator = models.generator
 
     ''' graph '''
     # inputs
-    z = tf.placeholder(tf.float32, shape=[None, z_dim])
+    z = tf.compat.v1.placeholder(tf.compat.v1.float32, shape=[None, z_dim])
 
     # generate
     gene = generator(z, training=False, reuse=False)
@@ -39,12 +39,12 @@ with tf.device('/gpu:%d' % gpu_id):
 # session
 sess = utils.session()
 # saver
-saver = tf.train.Saver()
+saver = tf.compat.v1.train.Saver()
 
 ''' initialization '''
 ckpt_dir = './checkpoints/celeba_lsgan/Epoch_(49)_(2915of3165).ckpt'
 saver.restore(sess, ckpt_dir)
-sess.run(tf.global_variables_initializer())
+sess.run(tf.compat.v1.global_variables_initializer())
 saver.restore(sess, ckpt_dir)
 
 try:

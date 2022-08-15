@@ -25,8 +25,8 @@ gpu_id = 3
 def preprocess_fn(img):
     crop_size = 108
     re_size = 64
-    img = tf.image.crop_to_bounding_box(img, (218 - crop_size) // 2, (178 - crop_size) // 2, crop_size, crop_size)
-    img = tf.to_float(tf.image.resize_images(img, [re_size, re_size], method=tf.image.ResizeMethod.BICUBIC)) / 127.5 - 1
+    img = tf.compat.v1.image.crop_to_bounding_box(img, (218 - crop_size) // 2, (178 - crop_size) // 2, crop_size, crop_size)
+    img = tf.compat.v1.to_float(tf.compat.v1.image.resize_images(img, [re_size, re_size], method=tf.compat.v1.image.ResizeMethod.BICUBIC)) / 127.5 - 1
     return img
 
 img_paths = glob.glob('./data/img_align_celeba/img_align_celeba/')
@@ -34,15 +34,15 @@ data_pool = utils.DiskImageData('./data/img_align_celeba/img_align_celeba/', bat
 
 
 """ graphs """
-with tf.device('/gpu:%d' % gpu_id):
+with tf.compat.v1.device('/gpu:%d' % gpu_id):
     ''' models '''
     generator = models.generator
     discriminator = models.discriminator
 
     ''' graph '''
     # inputs
-    real = tf.placeholder(tf.float32, shape=[None, 64, 64, 3])
-    z = tf.placeholder(tf.float32, shape=[None, z_dim])
+    real = tf.compat.v1.placeholder(tf.compat.v1.float32, shape=[None, 64, 64, 3])
+    z = tf.compat.v1.placeholder(tf.compat.v1.float32, shape=[None, z_dim])
 
     # generate
     fake = generator(z, reuse=False)
@@ -52,16 +52,16 @@ with tf.device('/gpu:%d' % gpu_id):
     f_logit = discriminator(fake)
 
     # losses
-    d_r_loss = tf.losses.mean_squared_error(tf.ones_like(r_logit), r_logit)
-    d_f_loss = tf.losses.mean_squared_error(tf.zeros_like(f_logit), f_logit)
+    d_r_loss = tf.compat.v1.losses.mean_squared_error(tf.compat.v1.ones_like(r_logit), r_logit)
+    d_f_loss = tf.compat.v1.losses.mean_squared_error(tf.compat.v1.zeros_like(f_logit), f_logit)
     d_loss = (d_r_loss + d_f_loss) / 2.0
-    g_loss = tf.losses.mean_squared_error(tf.ones_like(f_logit), f_logit)
+    g_loss = tf.compat.v1.losses.mean_squared_error(tf.compat.v1.ones_like(f_logit), f_logit)
 
     # otpims
     d_var = utils.trainable_variables('discriminator')
     g_var = utils.trainable_variables('generator')
-    d_step = tf.train.AdamOptimizer(learning_rate=lr, beta1=0.5).minimize(d_loss, var_list=d_var)
-    g_step = tf.train.AdamOptimizer(learning_rate=lr, beta1=0.5).minimize(g_loss, var_list=g_var)
+    d_step = tf.compat.v1.train.AdamOptimizer(learning_rate=lr, beta1=0.5).minimize(d_loss, var_list=d_var)
+    g_step = tf.compat.v1.train.AdamOptimizer(learning_rate=lr, beta1=0.5).minimize(g_loss, var_list=g_var)
 
     # summaries
     d_summary = utils.summary({d_loss: 'd_loss'})
@@ -78,15 +78,15 @@ sess = utils.session()
 # iteration counter
 it_cnt, update_cnt = utils.counter()
 # saver
-saver = tf.train.Saver(max_to_keep=5)
+saver = tf.compat.v1.train.Saver(max_to_keep=5)
 # summary writer
-summary_writer = tf.summary.FileWriter('./summaries/celeba_lsgan', sess.graph)
+summary_writer = tf.compat.v1.summary.FileWriter('./summaries/celeba_lsgan', sess.graph)
 
 ''' initialization '''
 ckpt_dir = './checkpoints/celeba_lsgan'
 utils.mkdir(ckpt_dir + '/')
 if not utils.load_checkpoint(ckpt_dir, sess):
-    sess.run(tf.global_variables_initializer())
+    sess.run(tf.compat.v1.global_variables_initializer())
 
 ''' train '''
 try:
