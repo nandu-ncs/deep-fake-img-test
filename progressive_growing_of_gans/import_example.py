@@ -4,7 +4,7 @@ import tensorflow as tf
 import PIL.Image
 
 # Initialize TensorFlow session.
-tf.InteractiveSession()
+tf.compat.v1.InteractiveSession()
 
 # Import official CelebA-HQ networks.
 with open('karras2018iclr-celebahq-1024x1024.pkl', 'rb') as file:
